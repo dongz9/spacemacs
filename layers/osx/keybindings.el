@@ -13,6 +13,8 @@
     (setq mac-option-modifier (if osx-use-option-as-meta 'meta nil))
 
     ;; Keybindings
+    (define-key global-map [home] 'beginning-of-line)
+    (define-key global-map [end] 'end-of-line)
     (global-set-key (kbd "s-=") 'spacemacs/scale-up-font)
     (global-set-key (kbd "s--") 'spacemacs/scale-down-font)
     (global-set-key (kbd "s-0") 'spacemacs/reset-font-size)

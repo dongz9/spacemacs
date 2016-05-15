@@ -229,6 +229,9 @@ nil."
 (setq linum-format "%4d")
 ;; highlight current line
 (global-hl-line-mode t)
+;; Active-fci-mode in all prog-mode buffers if the setting is enabled
+(when dotspacemacs-column-indicator
+  (add-hook 'prog-mode-hook 'fci-mode))
 ;; no blink
 (blink-cursor-mode 0)
 ;; When emacs asks for "yes" or "no", let "y" or "n" suffice

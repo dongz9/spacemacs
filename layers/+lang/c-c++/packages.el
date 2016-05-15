@@ -31,15 +31,76 @@
 (unless (version< emacs-version "24.4")
   (add-to-list 'c-c++-packages 'srefactor))
 
+(defun inside-class-enum-p (pos)
+  "Checks if POS is within the braces of a C++ \"enum class\"."
+  (ignore-errors
+    (save-excursion
+      (goto-char pos)
+      (up-list -1)
+      (backward-sexp 1)
+      (looking-back "enum[ \t]+class[ \t]+[^}]+"))))
+
+(defun align-enum-class (langelem)
+  (if (inside-class-enum-p (c-langelem-pos langelem))
+      0
+    (c-lineup-topmost-intro-cont langelem)))
+
+(defun align-enum-class-closing-brace (langelem)
+  (if (inside-class-enum-p (c-langelem-pos langelem))
+      '-
+    '+))
+
+(defconst dongz-cc-style
+  '((c-tab-always-indent               . t)
+    (c-comment-only-line-offset        . 0)
+    (c-indent-comments-syntactically-p . t)
+    (c-hanging-braces-alist            . ((class-open after)
+                                          (inline-open nil)
+                                          (inline-close after)
+                                          (substatement-open after)
+                                          (brace-list-open)))
+    (c-hanging-colons-alist            . ((member-init-intro before)
+                                          (inher-intro)
+                                          (case-label after)
+                                          (label after)
+                                          (access-label after)))
+    (c-cleanup-list                    . (scope-operator
+                                          empty-defun-braces
+                                          defun-close-semi))
+    (c-offsets-alist                   . ((access-label          . -2)
+                                          (block-open            . -4)
+                                          (case-label            . +)
+                                          (inline-open           . 0)
+                                          (member-init-intro     . *)
+                                          (knr-argdecl-intro     . -)
+                                          (label                 . *)
+                                          (substatement-open     . 0)
+                                          (innamespace           . [0])
+                                          (topmost-intro-cont    . align-enum-class)
+                                          (statement-cont        . align-enum-class-closing-brace)
+                                          ))
+    (c-echo-syntactic-information-p . t)
+    )
+  "dongz's C/C++ Programming Style")
+
+(defun dongz-cc-mode ()
+  (c-add-style "dongz-cc-style" dongz-cc-style t)
+  (setq tab-width 4
+        indent-tabs-mode nil)
+  )
+
 (defun c-c++/init-cc-mode ()
   (use-package cc-mode
     :defer t
     :init
-    (add-to-list 'auto-mode-alist `("\\.h$" . ,c-c++-default-mode-for-headers))
+    ;; (add-to-list 'auto-mode-alist `("\\.h$" . ,c-c++-default-mode-for-headers))
+    (add-to-list 'auto-mode-alist `("\\.h$" . c++-mode))
     :config
     (progn
       (require 'compile)
       (c-toggle-auto-newline 1)
+      (add-hook 'c-mode-hook 'dongz-cc-mode)
+      (add-hook 'c++-mode-hook 'dongz-cc-mode)
       (spacemacs/set-leader-keys-for-major-mode 'c-mode
         "ga" 'projectile-find-other-file
         "gA" 'projectile-find-other-file-other-window)
